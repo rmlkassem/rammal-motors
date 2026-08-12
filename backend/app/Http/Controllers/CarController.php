@@ -6,9 +6,18 @@ use App\Models\Car;
 use Illuminate\Http\Request;
 use App\Models\CarImage;
 use Illuminate\Support\Facades\Storage;
+use ImageKit\ImageKit;
 
 class CarController extends Controller
 {
+    private function imageKit(): ImageKit
+    {
+        return new ImageKit(
+            config('services.imagekit.public_key'),
+            config('services.imagekit.private_key'),
+            config('services.imagekit.url_endpoint')
+        );
+    }
     public function index()
     {
         $cars = Car::with('images')
@@ -89,11 +98,16 @@ class CarController extends Controller
 
             foreach ($request->file('images') as $index => $image) {
 
-                $path = $image->store('cars', 'public');
+                $result = $this->imageKit()->upload([
+                    'file' => base64_encode(file_get_contents($image->getRealPath())),
+                    'fileName' => uniqid() . '_' . $image->getClientOriginalName(),
+                    'folder' => '/rammal-motors/cars',
+                ]);
 
                 CarImage::create([
                     'car_id' => $car->id,
-                    'image_path' => $path,
+                    'image_path' => $result->result->url,
+                    'imagekit_file_id' => $result->result->fileId,
                     'position' => $index,
                 ]);
             }
@@ -174,13 +188,20 @@ class CarController extends Controller
 
         foreach ($request->file('images') as $index => $image) {
 
-            $path = $image->store('cars', 'public');
+            $result = $this->imageKit()->upload([
+            'file' => base64_encode(
+                file_get_contents($image->getRealPath())
+            ),
+            'fileName' => uniqid() . '_' . $image->getClientOriginalName(),
+            'folder' => '/rammal-motors/cars',
+        ]);
 
-            CarImage::create([
-                'car_id' => $car->id,
-                'image_path' => $path,
-                'position' => $currentPosition + $index + 1,
-            ]);
+        CarImage::create([
+            'car_id' => $car->id,
+            'image_path' => $result->result->url,
+            'imagekit_file_id' => $result->result->fileId,
+            'position' => $currentPosition + $index + 1,
+        ]);
         }
 
         $car->load('images');
@@ -197,7 +218,11 @@ class CarController extends Controller
             ], 404);
         }
 
-        Storage::disk('public')->delete($image->image_path);
+        if ($image->imagekit_file_id) {
+            $this->imageKit()->deleteFile(
+                $image->imagekit_file_id
+            );
+        }
 
         $image->delete();
 

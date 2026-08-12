@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'imagekit' => [
+        'public_key' => env('public_w4JvJ1TCUCY5kTbs6g87PNu5mV4='),
+        'private_key' => env('private_16Ydk8/K8PEhBbcbaM3KBZLIkIA='),
+        'url_endpoint' => env('https://ik.imagekit.io/xexahd3qy'),
+    ],
+
 ];

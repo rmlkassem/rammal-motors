@@ -10,6 +10,7 @@ class CarImage extends Model
     protected $fillable = [
         'car_id',
         'image_path',
+        'imagekit_file_id',
         'position',
     ];
 
@@ -24,6 +25,6 @@ class CarImage extends Model
 
     public function getImageUrlAttribute(): string
     {
-        return asset('storage/' . $this->image_path);
+        return $this->image_path;
     }
 }
