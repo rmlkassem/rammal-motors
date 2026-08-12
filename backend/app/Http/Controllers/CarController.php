@@ -155,7 +155,7 @@ class CarController extends Controller
     }
     public function destroy($id)
     {
-        $car = Car::find($id);
+        $car = Car::with('images')->find($id);
 
         if (!$car) {
             return response()->json([
@@ -163,10 +163,22 @@ class CarController extends Controller
             ], 404);
         }
 
+        // Delete all car images from ImageKit
+        foreach ($car->images as $image) {
+            if ($image->imagekit_file_id) {
+                $this->imageKit()->deleteFile(
+                    $image->imagekit_file_id
+                );
+            }
+        }
+
+        // Delete the car.
+        // car_images records will also be removed if
+        // your foreign key uses cascadeOnDelete().
         $car->delete();
 
         return response()->json([
-            'message' => 'Car deleted successfully'
+            'message' => 'Car and its images deleted successfully'
         ]);
     }
     public function addImages(Request $request, $id)
