@@ -198,7 +198,13 @@ function AdminCarsPage() {
 
           {/* Actions */}
           <div className="flex flex-wrap gap-3">
-
+            <Link
+              to="/admin/cars/add"
+              className="flex items-center gap-2 rounded-xl bg-[#0B3B82] px-5 py-3 font-bold text-white transition hover:bg-[#082E66]"
+            >
+              <Plus size={18} />
+              إضافة سيارة
+            </Link>
 
             <Link
               to="/admin/analytics"
