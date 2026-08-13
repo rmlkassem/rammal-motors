@@ -10,7 +10,7 @@ function CarDetailsPage() {
   const [error, setError] = useState("")
   const [selectedImage, setSelectedImage] = useState(0)
 
-  // Controls the full-screen image viewer
+  // Fullscreen image viewer
   const [isImageOpen, setIsImageOpen] = useState(false)
 
   useEffect(() => {
@@ -29,18 +29,38 @@ function CarDetailsPage() {
     fetchCar()
   }, [id])
 
-  // Close full-screen viewer using Escape
+  // Next fullscreen image
+  const showNextImage = () => {
+    if (!car?.images?.length) return
+
+    setSelectedImage((current) =>
+      current === car.images.length - 1 ? 0 : current + 1
+    )
+  }
+
+  // Previous fullscreen image
+  const showPreviousImage = () => {
+    if (!car?.images?.length) return
+
+    setSelectedImage((current) =>
+      current === 0 ? car.images.length - 1 : current - 1
+    )
+  }
+
+  // Keyboard controls for fullscreen viewer
   useEffect(() => {
     const handleKeyDown = (event) => {
+      if (!isImageOpen) return
+
       if (event.key === "Escape") {
         setIsImageOpen(false)
       }
 
-      if (event.key === "ArrowRight" && isImageOpen) {
+      if (event.key === "ArrowRight") {
         showNextImage()
       }
 
-      if (event.key === "ArrowLeft" && isImageOpen) {
+      if (event.key === "ArrowLeft") {
         showPreviousImage()
       }
     }
@@ -50,23 +70,20 @@ function CarDetailsPage() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [isImageOpen, selectedImage, car])
+  }, [isImageOpen, car])
 
-  const showNextImage = () => {
-    if (!car?.images?.length) return
+  // Prevent page scrolling while fullscreen image is open
+  useEffect(() => {
+    if (isImageOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
 
-    setSelectedImage((current) =>
-      current === car.images.length - 1 ? 0 : current + 1
-    )
-  }
-
-  const showPreviousImage = () => {
-    if (!car?.images?.length) return
-
-    setSelectedImage((current) =>
-      current === 0 ? car.images.length - 1 : current - 1
-    )
-  }
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [isImageOpen])
 
   if (loading) {
     return (
@@ -88,7 +105,6 @@ function CarDetailsPage() {
         className="flex min-h-[60vh] items-center justify-center bg-[#F5F8FC]"
       >
         <div className="text-center">
-
           <h1 className="text-2xl font-bold text-gray-900">
             السيارة غير موجودة
           </h1>
@@ -99,7 +115,6 @@ function CarDetailsPage() {
           >
             العودة إلى السيارات
           </Link>
-
         </div>
       </main>
     )
@@ -110,7 +125,6 @@ function CarDetailsPage() {
   return (
     <>
       <main dir="rtl" className="min-h-screen bg-[#F5F8FC]">
-
         <div className="mx-auto w-full max-w-5xl px-3 pb-12 pt-6 sm:px-6 sm:py-10">
 
           {/* Back */}
@@ -129,17 +143,16 @@ function CarDetailsPage() {
 
               {hasImages ? (
                 <>
-
                   {/* Main Image */}
                   <button
                     type="button"
                     onClick={() => setIsImageOpen(true)}
-                    className="block w-full cursor-zoom-in overflow-hidden rounded-xl bg-gray-100"
+                    className="block w-full cursor-zoom-in overflow-hidden rounded-xl"
                   >
                     <img
                       src={car.images[selectedImage].image_url}
                       alt={`${car.brand} ${car.model}`}
-                      className="h-64 w-full object-contain sm:h-96"
+                      className="h-64 w-full rounded-xl object-cover sm:h-96"
                     />
                   </button>
 
@@ -168,7 +181,6 @@ function CarDetailsPage() {
 
                     </div>
                   )}
-
                 </>
               ) : (
                 <div className="flex h-52 items-center justify-center rounded-xl bg-gray-200 sm:h-96">
@@ -185,7 +197,6 @@ function CarDetailsPage() {
 
               {/* Name and price */}
               <div className="mb-8">
-
                 <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
                   {car.brand} {car.model}
                 </h1>
@@ -196,7 +207,6 @@ function CarDetailsPage() {
                     maximumFractionDigits: 0,
                   })}
                 </p>
-
               </div>
 
               {/* Specifications */}
@@ -295,7 +305,6 @@ function CarDetailsPage() {
 
               {/* Description */}
               <div className="mt-8">
-
                 <h2 className="mb-3 text-xl font-bold text-gray-900">
                   وصف السيارة
                 </h2>
@@ -303,7 +312,6 @@ function CarDetailsPage() {
                 <p className="text-base leading-8 text-gray-600">
                   {car.description || "لا يوجد وصف متوفر لهذه السيارة."}
                 </p>
-
               </div>
 
               {/* WhatsApp */}
@@ -319,14 +327,11 @@ function CarDetailsPage() {
               </a>
 
             </div>
-
           </div>
-
         </div>
-
       </main>
 
-      {/* Full Screen Image Viewer */}
+      {/* Fullscreen Image Viewer */}
       {isImageOpen && hasImages && (
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 p-3 sm:p-6"
@@ -337,7 +342,7 @@ function CarDetailsPage() {
           <button
             type="button"
             onClick={() => setIsImageOpen(false)}
-            className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white text-2xl font-bold text-black shadow-lg sm:right-6 sm:top-6"
+            className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white text-2xl font-bold text-black shadow-lg sm:right-6 sm:top-6 sm:h-12 sm:w-12"
             aria-label="Close image"
           >
             ×
@@ -358,12 +363,12 @@ function CarDetailsPage() {
             </button>
           )}
 
-          {/* Full original image */}
+          {/* Original Image */}
           <img
             src={car.images[selectedImage].image_url}
             alt={`${car.brand} ${car.model}`}
             onClick={(event) => event.stopPropagation()}
-            className="max-h-[90vh] max-w-[95vw] object-contain"
+            className="max-h-[90vh] max-w-[90vw] object-contain"
           />
 
           {/* Next */}
